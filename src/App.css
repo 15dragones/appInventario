@@ -1,0 +1,210 @@
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-header {
+  background: #fff;
+  border-bottom: 1px solid #e7eaf0;
+}
+
+.app-header-content {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-brand-mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  background: #3156d3;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.app-brand-name {
+  color: #172033;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.app-header-label {
+  margin-left: auto;
+  color: #778198;
+  font-size: 14px;
+}
+
+.page-heading {
+  margin-bottom: 28px;
+}
+
+.page-eyebrow {
+  margin-bottom: 6px;
+  color: #3156d3;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 0;
+  color: #172033;
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.page-subtitle {
+  margin-top: 8px;
+  color: #778198;
+  font-size: 15px;
+}
+
+.product-card {
+  border: 1px solid #e7eaf0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgb(29 43 76 / 5%);
+}
+
+.product-card-heading {
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.product-card-heading h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.product-card-heading p {
+  margin: 5px 0 0;
+  color: #778198;
+  font-size: 13px;
+}
+
+.product-form-body {
+  padding: 20px 22px 22px;
+}
+
+.product-form-body .form-label {
+  color: #46516a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.product-form-body .form-control {
+  min-height: 42px;
+  border-color: #dfe4ed;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.product-form-body .form-control:focus {
+  border-color: #7890e5;
+  box-shadow: 0 0 0 3px rgb(49 86 211 / 12%);
+}
+
+.product-submit-button {
+  min-height: 42px;
+  border-radius: 8px;
+  background: #3156d3;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.product-submit-button:hover {
+  background: #2546b5;
+}
+
+.product-list-card {
+  overflow: hidden;
+}
+
+.product-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.product-count {
+  color: #778198;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.product-table {
+  margin: 0;
+  vertical-align: middle;
+}
+
+.product-table thead th {
+  padding: 13px 16px;
+  border-bottom-width: 1px;
+  background: #f8f9fc;
+  color: #778198;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.product-table tbody td {
+  padding: 15px 16px;
+  color: #46516a;
+  font-size: 13px;
+}
+
+.product-name {
+  color: #172033;
+  font-weight: 600;
+}
+
+.product-description {
+  max-width: 210px;
+  overflow: hidden;
+  color: #778198;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.product-actions .btn {
+  font-size: 12px;
+}
+
+.product-empty-state {
+  padding: 42px 20px;
+  color: #778198;
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 767.98px) {
+  .app-header-content {
+    min-height: 64px;
+  }
+
+  .app-header-label {
+    font-size: 12px;
+  }
+
+  .product-card-heading,
+  .product-form-body {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+}
