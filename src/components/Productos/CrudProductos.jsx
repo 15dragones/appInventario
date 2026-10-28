@@ -1,23 +1,21 @@
 import { useCallback, useEffect, useState } from 'react'
 import api from '../../services/api.js'
+import { getApiErrorMessage } from '../../services/errors.js'
 
 const emptyForm = {
   id: null,
   nombre: '',
   descripcion: '',
   precio: '',
-  stock: '',
-}
-
-function getErrorMessage(error) {
-  return (
-    error.response?.data?.error ||
-    'No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose.'
-  )
+  stock: '0',
+  categoriaId: '',
+  proveedorId: '',
 }
 
 function CrudProductos() {
   const [productos, setProductos] = useState([])
+  const [categorias, setCategorias] = useState([])
+  const [proveedores, setProveedores] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -26,11 +24,17 @@ function CrudProductos() {
 
   const obtenerProductos = useCallback(async () => {
     try {
-      const response = await api.get('/productos')
-      setProductos(response.data)
+      const [productosResponse, categoriasResponse, proveedoresResponse] = await Promise.all([
+        api.get('/productos'),
+        api.get('/categorias'),
+        api.get('/proveedores'),
+      ])
+      setProductos(productosResponse.data)
+      setCategorias(categoriasResponse.data)
+      setProveedores(proveedoresResponse.data)
       setErrorMessage('')
     } catch (error) {
-      setErrorMessage(getErrorMessage(error))
+      setErrorMessage(getApiErrorMessage(error))
     } finally {
       setIsLoading(false)
     }
@@ -39,14 +43,20 @@ function CrudProductos() {
   useEffect(() => {
     const controller = new AbortController()
 
-    api.get('/productos', { signal: controller.signal })
-      .then((response) => {
-        setProductos(response.data)
+    Promise.all([
+      api.get('/productos', { signal: controller.signal }),
+      api.get('/categorias', { signal: controller.signal }),
+      api.get('/proveedores', { signal: controller.signal }),
+    ])
+      .then(([productosResponse, categoriasResponse, proveedoresResponse]) => {
+        setProductos(productosResponse.data)
+        setCategorias(categoriasResponse.data)
+        setProveedores(proveedoresResponse.data)
         setErrorMessage('')
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
-          setErrorMessage(getErrorMessage(error))
+          setErrorMessage(getApiErrorMessage(error))
         }
       })
       .finally(() => {
@@ -76,21 +86,22 @@ function CrudProductos() {
       nombre: form.nombre.trim(),
       descripcion: form.descripcion.trim(),
       precio: Number(form.precio),
-      stock: Number(form.stock),
+      categoriaId: Number(form.categoriaId),
+      proveedorId: form.proveedorId ? Number(form.proveedorId) : null,
     }
 
     try {
       if (form.id) {
         await api.put(`/productos/${form.id}`, producto)
       } else {
-        await api.post('/productos', producto)
+        await api.post('/productos', { ...producto, stock: Number(form.stock) })
       }
 
       resetForm()
       setIsLoading(true)
       await obtenerProductos()
     } catch (error) {
-      setErrorMessage(getErrorMessage(error))
+      setErrorMessage(getApiErrorMessage(error))
     } finally {
       setIsSaving(false)
     }
@@ -103,6 +114,8 @@ function CrudProductos() {
       descripcion: producto.descripcion || '',
       precio: producto.precio,
       stock: producto.stock,
+      categoriaId: producto.categoriaId || '',
+      proveedorId: producto.proveedorId || '',
     })
     setErrorMessage('')
   }
@@ -123,7 +136,7 @@ function CrudProductos() {
       setIsLoading(true)
       await obtenerProductos()
     } catch (error) {
-      setErrorMessage(getErrorMessage(error))
+      setErrorMessage(getApiErrorMessage(error))
     } finally {
       setDeletingId(null)
     }
@@ -179,6 +192,44 @@ function CrudProductos() {
                 />
               </div>
               <div className="mb-3">
+                <label className="form-label" htmlFor="categoriaId">Categoría</label>
+                <select
+                  id="categoriaId"
+                  className="form-select"
+                  name="categoriaId"
+                  value={form.categoriaId}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Selecciona una categoría</option>
+                  {categorias.map((categoria) => (
+                    <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>
+                  ))}
+                </select>
+                {categorias.length === 0 && (
+                  <small className="text-muted">
+                    Registra una categoría antes de crear productos.
+                  </small>
+                )}
+              </div>
+              <div className="mb-3">
+                <label className="form-label" htmlFor="proveedorId">Proveedor (opcional)</label>
+                <select
+                  id="proveedorId"
+                  className="form-select"
+                  name="proveedorId"
+                  value={form.proveedorId}
+                  onChange={handleChange}
+                >
+                  <option value="">Sin proveedor</option>
+                  {proveedores.map((proveedor) => (
+                    <option key={proveedor.id} value={proveedor.id}>
+                      {proveedor.razonSocial}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-3">
                 <label className="form-label" htmlFor="descripcion">Descripción</label>
                 <input
                   id="descripcion"
@@ -205,7 +256,9 @@ function CrudProductos() {
                   />
                 </div>
                 <div className="col-5 mb-3">
-                  <label className="form-label" htmlFor="stock">Stock</label>
+                  <label className="form-label" htmlFor="stock">
+                    {form.id ? 'Stock actual' : 'Stock inicial'}
+                  </label>
                   <input
                     id="stock"
                     className="form-control"
@@ -215,14 +268,25 @@ function CrudProductos() {
                     step="1"
                     value={form.stock}
                     onChange={handleChange}
+                    readOnly={Boolean(form.id)}
                     required
                   />
                 </div>
               </div>
+              {!form.id && (
+                <p className="form-text">
+                  Si el saldo inicial es mayor que cero, se registrará como entrada en el Kardex.
+                </p>
+              )}
+              {form.id && (
+                <p className="form-text">
+                  El stock se modifica desde el Kardex para conservar el historial.
+                </p>
+              )}
               <button
                 className="btn btn-primary product-submit-button w-100"
                 type="submit"
-                disabled={isSaving}
+                disabled={isSaving || categorias.length === 0}
               >
                 {isSaving ? 'Guardando…' : form.id ? 'Actualizar producto' : 'Guardar producto'}
               </button>
@@ -257,6 +321,8 @@ function CrudProductos() {
                   <tr>
                     <th scope="col">ID</th>
                     <th scope="col">Producto</th>
+                    <th scope="col">Categoría</th>
+                    <th scope="col">Proveedor</th>
                     <th scope="col">Descripción</th>
                     <th scope="col">Precio</th>
                     <th scope="col">Stock</th>
@@ -266,13 +332,19 @@ function CrudProductos() {
                 <tbody>
                   {isLoading ? (
                     <tr>
-                      <td className="product-empty-state" colSpan="6">
+                      <td className="product-empty-state" colSpan="8">
                         Cargando productos…
+                      </td>
+                    </tr>
+                  ) : errorMessage ? (
+                    <tr>
+                      <td className="product-empty-state" colSpan="8">
+                        No se pudo cargar la información.
                       </td>
                     </tr>
                   ) : productos.length === 0 ? (
                     <tr>
-                      <td className="product-empty-state" colSpan="6">
+                      <td className="product-empty-state" colSpan="8">
                         Aún no hay productos. Registra el primero usando el formulario.
                       </td>
                     </tr>
@@ -281,6 +353,8 @@ function CrudProductos() {
                       <tr key={producto.id}>
                         <td>{producto.id}</td>
                         <td className="product-name">{producto.nombre}</td>
+                        <td>{producto.categoria?.nombre || '—'}</td>
+                        <td>{producto.proveedor?.razonSocial || '—'}</td>
                         <td className="product-description" title={producto.descripcion || ''}>
                           {producto.descripcion || '—'}
                         </td>
