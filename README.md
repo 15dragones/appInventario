@@ -1,6 +1,6 @@
 # Panel de inventario
 
-Panel administrativo en React para gestionar productos, categorías, proveedores y movimientos Kardex mediante la API REST de `miApi`.
+Panel administrativo en React para gestionar productos, categorías, proveedores, usuarios y movimientos Kardex mediante la API REST de `miApi`.
 
 ## Requisitos
 
@@ -37,8 +37,14 @@ agregar las relaciones. La base de datos configurada debe existir antes de arran
 ## Funcionalidades
 
 - Inicio con indicadores de productos, existencias bajas, categorías y proveedores.
+- El Dashboard usa Tailwind CSS (prefijo `tw-` para convivir con Bootstrap), Lucide React
+  para iconos y Recharts para el gráfico de stock por categoría. El resto de las pantallas
+  conserva Bootstrap durante esta prueba visual.
 - CRUD de categorías y proveedores.
 - CRUD de productos con categoría obligatoria y proveedor opcional.
+- Registro e inicio de sesión con JWT; el token se guarda en `localStorage`, se envía en las peticiones y se valida al recargar.
+- Roles Administrador y Almacenero: solo administradores administran usuarios y modifican categorías/proveedores.
+- Administración de usuarios con estado activo y contraseñas almacenadas con bcrypt.
 - El stock inicial de un producto se registra como entrada en el Kardex; los cambios
   posteriores solo se realizan mediante movimientos.
 - Kardex de entradas, salidas y ajustes; el registro del movimiento y la actualización
@@ -54,5 +60,11 @@ npm.cmd run lint
 npm.cmd run build
 ```
 
-Los endpoints principales son `GET/POST /categorias`, `GET/POST /proveedores`,
-`GET/POST/PUT/DELETE /productos`, `GET/POST /movimientos` y `GET /dashboard/resumen`.
+El informe del Laboratorio 9 está en `docs/Informe_Laboratorio_9_Inventario.pdf`.
+Su fuente editable en HTML y la captura incluida están en la misma carpeta.
+
+Los endpoints de autenticación son `POST /api/auth/register`, `POST /api/auth/login` y
+`GET /api/auth/me`. Las demás rutas de la API requieren `Authorization: Bearer <token>`.
+Los endpoints de inventario son `GET/POST/PUT/DELETE /categorias`,
+`GET/POST/PUT/DELETE /proveedores`, `GET/POST/PUT/DELETE /productos`,
+`GET/POST/PUT/DELETE /usuarios`, `GET/POST /movimientos` y `GET /dashboard/resumen`.

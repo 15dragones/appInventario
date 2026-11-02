@@ -13,6 +13,8 @@ function Kardex() {
   const [productos, setProductos] = useState([])
   const [movimientos, setMovimientos] = useState([])
   const [form, setForm] = useState(initialForm)
+  const [search, setSearch] = useState('')
+  const [isFormOpen, setIsFormOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -75,6 +77,7 @@ function Kardex() {
         cantidad: Number(form.cantidad),
       })
       setForm(initialForm)
+      setIsFormOpen(false)
       await cargarDatos()
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error))
@@ -83,14 +86,17 @@ function Kardex() {
     }
   }
 
+  const filteredMovements = movimientos.filter((movement) => (
+    `${movement.producto?.nombre || ''} ${movement.tipoMovimiento} ${movement.usuario?.nombre || ''} ${movement.observaciones || ''}`
+      .toLocaleLowerCase('es')
+      .includes(search.trim().toLocaleLowerCase('es'))
+  ))
+
   return (
     <div className="page-content">
       <div className="page-heading">
         <p className="page-eyebrow">Control de existencias</p>
-        <h1 className="page-title">Kardex de movimientos</h1>
-        <p className="page-subtitle">
-          Registra entradas, salidas y ajustes; cada operación actualiza el stock con su historial.
-        </p>
+        <h1 className="page-title">Kardex / Movimientos</h1>
       </div>
 
       {errorMessage && (
@@ -106,12 +112,31 @@ function Kardex() {
         </div>
       )}
 
-      <div className="row g-4">
-        <section className="col-12 col-lg-4" aria-labelledby="movement-form-title">
-          <div className="product-card">
-            <div className="product-card-heading">
-              <h2 id="movement-form-title">Nuevo movimiento</h2>
-              <p>El stock se actualizará al guardar.</p>
+      <div className="page-toolbar">
+        <input
+          className="form-control table-search"
+          type="search"
+          aria-label="Buscar movimientos"
+          placeholder="Buscar por producto, tipo o usuario..."
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+        <button className="btn btn-primary toolbar-primary" type="button" onClick={() => setIsFormOpen(true)}>
+          + Registrar movimiento
+        </button>
+      </div>
+
+      {isFormOpen && (
+        <div className="modal-backdrop-custom" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget && !isSaving) setIsFormOpen(false)
+        }}>
+          <section className="modal-card-custom" role="dialog" aria-modal="true" aria-labelledby="movement-form-title">
+            <div className="product-card-heading modal-heading">
+              <div>
+                <h2 id="movement-form-title">Registrar movimiento</h2>
+                <p>El stock se actualizará al guardar.</p>
+              </div>
+              <button className="modal-close" type="button" aria-label="Cerrar" onClick={() => setIsFormOpen(false)}>×</button>
             </div>
             <form className="product-form-body" onSubmit={handleSubmit}>
               <div className="mb-3">
@@ -191,40 +216,50 @@ function Kardex() {
                 {isSaving ? 'Registrando…' : 'Registrar movimiento'}
               </button>
             </form>
-          </div>
-        </section>
+          </section>
+        </div>
+      )}
 
-        <section className="col-12 col-lg-8" aria-labelledby="movement-list-title">
+      <section aria-labelledby="movement-list-title">
           <div className="product-card product-list-card">
             <div className="product-card-heading product-list-heading">
               <div>
-                <h2 id="movement-list-title">Historial de movimientos</h2>
+                <h2 id="movement-list-title">Lista de movimientos (Kardex)</h2>
                 <p>Registro cronológico de cambios de stock.</p>
               </div>
-              <span className="product-count">{movimientos.length} movimientos</span>
+              <span className="product-count">{filteredMovements.length} movimientos</span>
             </div>
             <div className="table-responsive">
               <table className="table table-hover product-table">
                 <thead>
                   <tr>
-                    <th>Fecha</th><th>Producto</th><th>Tipo</th>
-                    <th>Cantidad</th><th>Observaciones</th>
+                    <th>ID</th><th>Fecha / Hora</th><th>Producto</th><th>Tipo</th>
+                    <th>Cantidad</th><th>Usuario</th>
                   </tr>
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr><td className="product-empty-state" colSpan="5">Cargando movimientos…</td></tr>
+                    <tr><td className="product-empty-state" colSpan="6">Cargando movimientos…</td></tr>
                   ) : errorMessage ? (
-                    <tr><td className="product-empty-state" colSpan="5">No se pudo cargar la información.</td></tr>
-                  ) : movimientos.length === 0 ? (
-                    <tr><td className="product-empty-state" colSpan="5">Aún no hay movimientos registrados.</td></tr>
-                  ) : movimientos.map((movimiento) => (
+                    <tr><td className="product-empty-state" colSpan="6">No se pudo cargar la información.</td></tr>
+                  ) : filteredMovements.length === 0 ? (
+                    <tr><td className="product-empty-state" colSpan="6">
+                      {search ? 'No hay movimientos que coincidan con la búsqueda.' : 'Aún no hay movimientos registrados.'}
+                    </td></tr>
+                  ) : filteredMovements.map((movimiento) => (
                     <tr key={movimiento.id}>
+                      <td>{String(movimiento.id).padStart(3, '0')}</td>
                       <td>{new Date(movimiento.fechaHora).toLocaleString('es-PE')}</td>
                       <td className="product-name">{movimiento.producto?.nombre || '—'}</td>
-                      <td>{movimiento.tipoMovimiento}</td>
-                      <td>{movimiento.cantidad > 0 ? '+' : ''}{movimiento.cantidad}</td>
-                      <td>{movimiento.observaciones || '—'}</td>
+                      <td>
+                        <span className={`movement-badge movement-${movimiento.tipoMovimiento === 'Entrada' ? 'entry' : movimiento.tipoMovimiento === 'Salida' ? 'exit' : 'adjustment'}`}>
+                          {movimiento.tipoMovimiento}
+                        </span>
+                      </td>
+                      <td className={movimiento.cantidad > 0 ? 'text-success' : 'text-danger'}>
+                        {movimiento.cantidad > 0 ? '+' : ''}{movimiento.cantidad}
+                      </td>
+                      <td>{movimiento.usuario?.nombre || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -232,7 +267,6 @@ function Kardex() {
             </div>
           </div>
         </section>
-      </div>
     </div>
   )
 }

@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratorio 10 - Seguridad y autenticación con JWT</title>
+  <style>
+    @page { size: A4; margin: 16mm 16mm 17mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #233047; font: 9.2pt/1.45 "Segoe UI", Arial, sans-serif; background: #fff; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; color: #15213a; font-size: 28pt; line-height: 1.08; }
+    h2 { margin: 0 0 11px; padding-bottom: 7px; border-bottom: 1px solid #e3e8f1; color: #1b2b4a; font-size: 16pt; }
+    h3 { margin: 13px 0 6px; color: #283c63; font-size: 10.5pt; }
+    p { margin-bottom: 8px; }
+    .cover { min-height: 264mm; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; }
+    .cover-top { margin: -16mm -16mm 0; padding: 18mm 16mm 21mm; border-bottom: 7px solid #4f6fe5; color: #fff; background: #111827; }
+    .cover-brand { font-size: 10pt; font-weight: 700; letter-spacing: 1.7px; }
+    .cover-course { margin-top: 8px; color: #cbd5e1; font-size: 9pt; }
+    .cover-title { padding-top: 27mm; }
+    .cover-kicker { margin-bottom: 12px; color: #5368dc; font-size: 9pt; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .cover-subtitle { max-width: 135mm; margin: 12px 0 25px; color: #56647a; font-size: 14pt; }
+    .cover-meta { width: 100%; border-collapse: collapse; }
+    .cover-meta td { padding: 8px 0; border-bottom: 1px solid #e5e9f1; }
+    .cover-meta td:first-child { width: 34mm; color: #6b7890; font-weight: 600; }
+    .cover-foot { padding-top: 9mm; border-top: 1px solid #e5e9f1; color: #78859a; font-size: 8.5pt; }
+    .page { page-break-before: always; }
+    .eyebrow { margin-bottom: 5px; color: #5467d9; font-size: 7.5pt; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+    .lead { color: #58667c; font-size: 10.4pt; }
+    .callout { margin: 10px 0; padding: 9px 11px; border-left: 3px solid #5368dc; background: #f3f5ff; }
+    .callout.success { border-color: #24936a; background: #eef9f3; }
+    .callout.warning { border-color: #e2a62f; background: #fff9e9; }
+    table.data { width: 100%; margin: 8px 0 12px; border-collapse: collapse; font-size: 7.8pt; }
+    table.data th { padding: 6px 7px; color: #fff; background: #17213a; text-align: left; }
+    table.data td { padding: 6px 7px; border-bottom: 1px solid #e5e9f0; vertical-align: top; }
+    table.data tr:nth-child(even) td { background: #f7f8fb; }
+    pre { margin: 7px 0 10px; padding: 9px 10px; border-radius: 5px; color: #e2e8f0; background: #111827; font: 7.2pt/1.4 Consolas, "Courier New", monospace; white-space: pre-wrap; word-break: break-word; }
+    code { font: 8pt Consolas, "Courier New", monospace; color: #394b73; }
+    figure { margin: 8px 0 10px; break-inside: avoid; }
+    figure img { display: block; width: 100%; max-height: 91mm; border: 1px solid #dfe5ef; object-fit: contain; }
+    figcaption { margin-top: 4px; color: #748096; font-size: 7.4pt; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; align-items: start; }
+    .grid-2 figure img { max-height: 73mm; }
+    .small { color: #65728a; font-size: 7.7pt; }
+    .footer-note { margin-top: 12px; padding-top: 7px; border-top: 1px solid #e3e8f1; color: #7b8799; font-size: 7.5pt; }
+    @media screen { body { max-width: 210mm; margin: 0 auto; padding: 16mm; box-shadow: 0 0 18px #dce2ec; } .page { margin-top: 16mm; } }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="cover-top">
+      <div class="cover-brand">SENATI · ESCUELA DE TECNOLOGÍAS DE LA INFORMACIÓN</div>
+      <div class="cover-course">FULL STACK DEVELOPER SOFTWARE · SEMINARIO</div>
+    </div>
+    <div class="cover-title">
+      <div class="cover-kicker">Laboratorio #10</div>
+      <h1>Seguridad y<br>autenticación con JWT</h1>
+      <p class="cover-subtitle">Protección de una API Express con hash de contraseñas, tokens de acceso, control de roles y políticas de seguridad.</p>
+      <table class="cover-meta">
+        <tr><td>Estudiante</td><td>____________________________________________</td></tr>
+        <tr><td>Docente</td><td>Giancarlos Barboza N.</td></tr>
+        <tr><td>Sección</td><td>Seminario IA 501</td></tr>
+        <tr><td>Fecha</td><td>02 de noviembre de 2026</td></tr>
+      </table>
+    </div>
+    <div class="cover-foot">Informe técnico · API del sistema de inventario</div>
+  </section>
+
+  <section>
+    <div class="eyebrow">01 · Alcance</div>
+    <h2>Objetivo y resumen</h2>
+    <p class="lead">El objetivo es proteger la API del sistema de inventario con autenticación y controles de acceso, almacenar contraseñas como hashes no reversibles y reducir riesgos comunes mediante políticas de seguridad en Express.</p>
+    <p>La implementación usa Express, Sequelize, MySQL, bcryptjs, jsonwebtoken, Helmet, CORS y express-rate-limit. El cliente React inicia sesión y envía el token en el encabezado Authorization. El servidor valida el JWT y vuelve a comprobar que el usuario exista y esté activo.</p>
+    <table class="data">
+      <tr><th>Requisito de la guía</th><th>Implementación observada en el proyecto</th><th>Estado documental</th></tr>
+      <tr><td>Hash seguro de contraseñas</td><td>bcryptjs con factor 12; el modelo persiste el valor en <code>password_hash</code>.</td><td>Implementado; captura de BD censurada.</td></tr>
+      <tr><td>Registro, inicio de sesión y JWT</td><td><code>POST /api/auth/register</code>, <code>POST /api/auth/login</code> y emisión de token HS256 con vencimiento.</td><td>Implementado; login 200 capturado con datos privados censurados. No se conserva una captura de register.</td></tr>
+      <tr><td>Middleware de autenticación y roles</td><td>Verifica Bearer/JWT; las mutaciones de categorías y proveedores requieren rol Administrador.</td><td>Implementado; captura disponible de operación denegada por rol.</td></tr>
+      <tr><td>Helmet, CORS y límites de intentos</td><td>Helmet, lista de orígenes permitidos y límites separados para login y registro.</td><td>Implementado en código fuente.</td></tr>
+      <tr><td>Terminales y MySQL</td><td>Frontend, API y tablas del inventario visibles en las capturas.</td><td>Capturado.</td></tr>
+      <tr><td>CRUD del navegador y Postman</td><td>Categorías guardadas, listadas, actualizadas y eliminadas; solicitudes Postman muestran los métodos y códigos.</td><td>CRUD de API capturado; falta captura directa del botón Guardar en navegador.</td></tr>
+    </table>
+    <div class="callout warning"><strong>Transparencia sobre las evidencias:</strong> el informe documenta la implementación existente y las capturas disponibles. No inventa imágenes de registro, de GET sin token ni de guardado desde el navegador que no quedaron capturadas. Los fragmentos de código son extractos transcritos de los archivos fuente, no capturas del editor.</div>
+  </section>
+
+  <section class="page">
+    <div class="eyebrow">02 · Controles de seguridad</div>
+    <h2>Configuración global de la API</h2>
+    <p>Helmet agrega encabezados de seguridad; CORS acepta los orígenes configurados, y el parser JSON limita el tamaño de las solicitudes. Las rutas de autenticación se montan antes del middleware que exige sesión al resto de la API.</p>
+    <pre>app.use(helmet())
+app.use(cors({
+  origin: origenesPermitidos,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400
+}))
+app.use(express.json({ limit: '1mb' }))
+
+app.use('/api/auth', rutasAutenticacion)
+app.use(autenticar)</pre>
+    <p class="small">Fuente: <code>miApi/index.js</code>. La lista FRONTEND_ORIGINS se configura en el entorno; no se incluyen valores secretos.</p>
+    <h3>Mitigación de intentos automatizados</h3>
+    <pre>const limitarLogin = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false
+})
+const limitarRegistro = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false
+})</pre>
+    <p class="small">Fuente: <code>miApi/routes/autenticacion.js</code>. Se permiten hasta 10 intentos de login y 5 registros por ventana de 15 minutos, según la configuración del proyecto.</p>
+    <h3>Contraseñas y almacenamiento</h3>
+    <pre>async function hashPassword(password) {
+  return bcrypt.hash(password, 12)
+}
+
+passwordHash: {
+  type: DataTypes.STRING(255),
+  allowNull: false,
+  field: 'password_hash'
+}</pre>
+    <p class="small">Fuente: <code>miApi/services/passwords.js</code> y <code>miApi/models/Usuario.js</code>. El hash no puede convertirse de vuelta a la contraseña original; en la captura se ocultaron sus valores y los correos.</p>
+    <h3>Validación y consultas</h3>
+    <p>La API valida tipos, formatos y longitudes antes de procesar credenciales. Para consultar usuarios usa Sequelize con condiciones estructuradas (<code>findOne({ where: { email } })</code>) en vez de concatenar texto de entrada en una sentencia SQL; el ORM genera consultas parametrizadas. Helmet aplica encabezados HTTP protectores, pero no sustituye la validación ni el escape contextual de contenido si se incorporaran vistas HTML.</p>
+  </section>
+
+  <section class="page">
+    <div class="eyebrow">02 · Autenticación</div>
+    <h2>Registro, token y protección de rutas</h2>
+    <h3>Registro de una cuenta</h3>
+    <pre>const usuario = await Usuario.create({
+  ...userValues,
+  passwordHash: await bcrypt.hash(password, 12),
+  rol: usuariosExistentes === 0 ? 'Administrador' : 'Almacenero',
+  activo: true
+})</pre>
+    <p>La ruta de registro valida nombre, correo y longitud de contraseña, almacena el hash en vez del texto original y no permite que el formulario público elija el rol. El primer registro obtiene Administrador; los siguientes, Almacenero.</p>
+    <h3>Token de acceso y verificación</h3>
+    <pre>jwt.sign(
+  { rol: usuario.rol },
+  obtenerSecretoJwt(),
+  {
+    algorithm: 'HS256',
+    subject: String(usuario.id),
+    expiresIn: process.env.JWT_EXPIRES_IN || '2h'
+  }
+)</pre>
+    <p>El secreto se obtiene de una variable de entorno y el backend exige un mínimo de 32 bytes. Al recibir una petición, valida el esquema Bearer, la firma HS256, el vencimiento y el identificador; además consulta que la cuenta continúe activa.</p>
+    <pre>const authorization = req.get('authorization') || ''
+const [scheme, token] = authorization.split(' ')
+if (scheme !== 'Bearer' || !token) {
+  return res.status(401).json({ error: 'Debes iniciar sesión para continuar.' })
+}
+const payload = jwt.verify(token, obtenerSecretoJwt(), {
+  algorithms: ['HS256']
+})</pre>
+    <p class="small">Fuente: <code>miApi/routes/autenticacion.js</code> y <code>miApi/middleware/autenticacion.js</code>.</p>
+    <h3>Control de permisos</h3>
+    <pre>function autorizar(...rolesPermitidos) {
+  return (req, res, next) => {
+    if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
+      return res.status(403).json({
+        error: 'No tienes permisos para realizar esta acción.'
+      })
+    }
+    return next()
+  }
+}</pre>
+    <p>El middleware global requiere una sesión para las rutas privadas; las operaciones de creación, edición y eliminación de categorías se reservan al rol Administrador. El acceso autenticado sin permisos devuelve <code>403</code>, mientras que una petición sin token devuelve <code>401</code>.</p>
+  </section>
+
+  <section class="page">
+    <div class="eyebrow">03 · Ejecución y base de datos</div>
+    <h2>Servicios locales y persistencia</h2>
+    <figure>
+      <img src="evidencias/lab10/terminales.png" alt="Terminales con backend y frontend ejecutándose">
+      <figcaption>Figura 1. Backend Node/Express conectado y frontend Vite ejecutándose en el entorno local.</figcaption>
+    </figure>
+    <figure>
+      <img src="evidencias/lab10/heidisql-tablas.png" alt="HeidiSQL mostrando las tablas de la base bdinventario">
+      <figcaption>Figura 2. HeidiSQL: estructura de <code>bdinventario</code> con tablas de inventario y usuarios.</figcaption>
+    </figure>
+    <figure>
+      <img src="evidencias/lab10/heidisql-password-hash-censurado.png" alt="HeidiSQL muestra el campo password_hash con datos sensibles censurados">
+      <figcaption>Figura 3. Tabla Usuarios y campo <code>password_hash</code>; los correos y los valores de hash se censuraron. La implementación bcrypt se respalda con el fragmento de código anterior.</figcaption>
+    </figure>
+  </section>
+
+  <section class="page">
+    <div class="eyebrow">04 · Pruebas de autenticación</div>
+    <h2>Inicio de sesión y autorización</h2>
+    <figure>
+      <img src="evidencias/lab10/postman-login-200-censurado.png" alt="Postman muestra login HTTP 200 con credenciales y valor del token ocultos">
+      <figcaption>Figura 4. POST de login con respuesta <strong>200 OK</strong>. Postman recibió un token junto con la respuesta; el valor se oculta en el documento porque es una credencial de sesión, no porque se omita la prueba de autenticación.</figcaption>
+    </figure>
+    <figure>
+      <img src="evidencias/lab10/postman-denegado-403.png" alt="Postman muestra 403 Forbidden al crear categoría para un usuario autenticado sin permiso de administración">
+      <figcaption>Figura 5. POST a categorías con respuesta <strong>403 Forbidden</strong> y mensaje de permisos insuficientes. El middleware devuelve <code>401</code> antes de comprobar el rol si falta el Bearer o el JWT es inválido; llegar a <code>403</code> confirma que la petición se autenticó y fue rechazada por autorización.</figcaption>
+    </figure>
+    <div class="callout success"><strong>Uso comprobable del JWT:</strong> la secuencia mostrada es login exitoso (<code>200</code>, JWT emitido) y solicitud protegida que llega al control de roles (<code>403</code>). Eso demuestra que se presentó un token reconocido; el rechazo de la creación indica que el usuario autenticado no tenía permiso de Administrador para esa operación, no que el JWT hubiera fallado.</div>
+    <div class="callout warning"><strong>Alcance de la prueba:</strong> no se conserva una captura de GET sin Bearer y GET autorizado con Bearer. La respuesta <code>403</code> sí aporta evidencia directa de autenticación exitosa en una ruta protegida, pero no se presenta como captura de esos dos GET.</div>
+  </section>
+
+  <section class="page">
+    <div class="eyebrow">05 · Operaciones del inventario</div>
+    <h2>CRUD desde el navegador</h2>
+    <figure>
+      <img src="evidencias/lab10/dashboard-admin.png" alt="Dashboard del inventario con sesión de administrador">
+      <figcaption>Figura 6. Panel visible con sesión Administrador.</figcaption>
+    </figure>
+    <figure>
+      <img src="evidencias/lab10/navegador-categoria-creada.png" alt="Formulario de edición de la categoría manzana en el navegador">
+      <figcaption>Figura 7. El registro «manzana» aparece en la tabla de categorías con el formulario de edición abierto. Esta imagen no es una captura del formulario Nueva categoría antes de guardar.</figcaption>
+    </figure>
+    <div class="grid-2">
+      <figure>
+        <img src="evidencias/lab10/navegador-categoria-editada.png" alt="Categoría de prueba actualizada en el listado">
+        <figcaption>Figura 8. Categoría editada y reflejada en el listado.</figcaption>
+      </figure>
+      <figure>
+        <img src="evidencias/lab10/navegador-categoria-eliminada.png" alt="Listado tras eliminar la categoría de prueba">
+        <figcaption>Figura 9. Listado después de eliminar la categoría de prueba.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="eyebrow">06 · Pruebas de API</div>
+    <h2>Postman: crear y consultar</h2>
+    <p>Las capturas de los endpoints CRUD se reutilizan como pruebas del mismo sistema de inventario. No contienen el JWT; los resultados HTTP observados se muestran junto a cada solicitud.</p>
+    <figure>
+      <img src="evidencias/lab10/postman-post.png" alt="Postman crea una categoría y recibe respuesta 201">
+      <figcaption>Figura 10. POST de categoría: <strong>201 Created</strong>.</figcaption>
+    </figure>
+    <figure>
+      <img src="evidencias/lab10/postman-get.png" alt="Postman consulta categorías y recibe respuesta 200">
+      <figcaption>Figura 11. GET de categorías: <strong>200 OK</strong>. La captura no demuestra por sí sola el estado del encabezado Authorization.</figcaption>
+    </figure>
+  </section>
+
+  <section class="page">
+    <div class="eyebrow">06 · Continuación</div>
+    <h2>Postman: modificar y eliminar</h2>
+    <figure>
+      <img src="evidencias/lab10/postman-put.png" alt="Postman actualiza una categoría y recibe respuesta 200">
+      <figcaption>Figura 12. PUT de categoría: <strong>200 OK</strong>.</figcaption>
+    </figure>
+    <figure>
+      <img src="evidencias/lab10/postman-delete.png" alt="Postman elimina una categoría y recibe respuesta 200">
+      <figcaption>Figura 13. DELETE de categoría: <strong>200 OK</strong>.</figcaption>
+    </figure>
+    <table class="data">
+      <tr><th>Operación</th><th>Resultado capturado</th><th>Observación</th></tr>
+      <tr><td>POST /categorias</td><td>201 Created</td><td>Recurso de prueba creado mediante API.</td></tr>
+      <tr><td>GET /categorias</td><td>200 OK</td><td>Listado disponible; la imagen no acredita el encabezado Bearer.</td></tr>
+      <tr><td>PUT /categorias/:id</td><td>200 OK</td><td>Recurso de prueba modificado.</td></tr>
+      <tr><td>DELETE /categorias/:id</td><td>200 OK</td><td>Recurso de prueba eliminado.</td></tr>
+    </table>
+  </section>
+
+  <section class="page">
+    <div class="eyebrow">07 · Conclusiones</div>
+    <h2>Resultado y evidencias pendientes</h2>
+    <p>La API del proyecto integra contraseñas con bcrypt, autenticación mediante JWT, validación de usuario activo, autorización por rol, protección de encabezados con Helmet, CORS con lista de orígenes y límites de intentos de login y registro. También se cuenta con capturas del entorno, la base de datos, un login satisfactorio con datos censurados, una operación denegada por rol y el CRUD de categorías por API.</p>
+    <table class="data">
+      <tr><th>Elemento solicitado por la guía</th><th>Estado</th><th>Qué acredita este informe</th></tr>
+      <tr><td>Documentación de código y ejecución</td><td>Parcial</td><td>Extractos del código fuente y capturas reales de ejecución; no se dispone de capturas del código abierto en VS Code.</td></tr>
+      <tr><td>Terminal backend/frontend</td><td>Con evidencia</td><td>Terminal compartida con ambos servicios.</td></tr>
+      <tr><td>Tablas MySQL/HeidiSQL</td><td>Con evidencia</td><td>Tablas del inventario y captura censurada del campo <code>password_hash</code>.</td></tr>
+      <tr><td>POST, GET, PUT y DELETE en Postman</td><td>Con evidencia CRUD</td><td>Respuestas HTTP 201/200 de categorías; la captura GET no permite verificar que se envió Bearer.</td></tr>
+      <tr><td>Guardar/modificar/eliminar en navegador</td><td>Parcial</td><td>Se documentan la categoría existente, edición y eliminación; no se conservó captura directa del guardado en pantalla.</td></tr>
+      <tr><td>Registro POST de usuario y respuesta</td><td>Solo código</td><td>Ruta y comportamiento descritos; no hay captura disponible de la respuesta de registro.</td></tr>
+      <tr><td>GET protegido sin token y autorizado</td><td>Solo implementación</td><td>El middleware define 401 sin token y 200 cuando la petición autorizada procede; faltan capturas de ambos casos.</td></tr>
+    </table>
+    <div class="callout success"><strong>Seguridad:</strong> no se publican secretos JWT, contraseñas, tokens ni hashes completos. La captura original de login se recortó y censuró antes de incluir su respuesta HTTP.</div>
+    <div class="footer-note">Fin del informe · Laboratorio 10 · Seguridad y autenticación con JWT</div>
+  </section>
+</body>
+</html>

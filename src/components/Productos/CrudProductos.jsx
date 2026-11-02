@@ -17,6 +17,8 @@ function CrudProductos() {
   const [categorias, setCategorias] = useState([])
   const [proveedores, setProveedores] = useState([])
   const [form, setForm] = useState(emptyForm)
+  const [search, setSearch] = useState('')
+  const [isFormOpen, setIsFormOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
@@ -75,6 +77,7 @@ function CrudProductos() {
 
   function resetForm() {
     setForm(emptyForm)
+    setIsFormOpen(false)
   }
 
   async function handleSubmit(event) {
@@ -118,7 +121,13 @@ function CrudProductos() {
       proveedorId: producto.proveedorId || '',
     })
     setErrorMessage('')
+    setIsFormOpen(true)
   }
+
+  const filteredProducts = productos.filter((producto) => (
+    `${producto.nombre} ${producto.categoria?.nombre || ''}`.toLocaleLowerCase('es')
+      .includes(search.trim().toLocaleLowerCase('es'))
+  ))
 
   async function handleDelete(id) {
     if (!window.confirm('¿Seguro que deseas eliminar este producto?')) {
@@ -143,13 +152,10 @@ function CrudProductos() {
   }
 
   return (
-    <div className="container py-4 py-md-5">
+    <div className="page-content">
       <div className="page-heading">
         <p className="page-eyebrow">Inventario</p>
-        <h1 className="page-title">Gestión de productos</h1>
-        <p className="page-subtitle">
-          Administra los productos, precios y existencias de tu inventario.
-        </p>
+        <h1 className="page-title">Productos</h1>
       </div>
 
       {errorMessage && (
@@ -168,14 +174,38 @@ function CrudProductos() {
         </div>
       )}
 
-      <div className="row g-4">
-        <section className="col-12 col-lg-4" aria-labelledby="product-form-title">
-          <div className="product-card h-100">
-            <div className="product-card-heading">
-              <h2 id="product-form-title">
-                {form.id ? 'Editar producto' : 'Nuevo producto'}
-              </h2>
-              <p>Completa los datos del producto.</p>
+      <div className="page-toolbar">
+        <input
+          className="form-control table-search"
+          type="search"
+          aria-label="Buscar productos"
+          placeholder="Buscar por nombre o categoría..."
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+        <button
+          className="btn btn-primary toolbar-primary"
+          type="button"
+          onClick={() => {
+            resetForm()
+            setIsFormOpen(true)
+          }}
+        >
+          + Nuevo producto
+        </button>
+      </div>
+
+      {isFormOpen && (
+        <div className="modal-backdrop-custom" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget && !isSaving) resetForm()
+        }}>
+          <section className="modal-card-custom" role="dialog" aria-modal="true" aria-labelledby="product-form-title">
+            <div className="product-card-heading modal-heading">
+              <div>
+                <h2 id="product-form-title">{form.id ? 'Editar producto' : 'Nuevo producto'}</h2>
+                <p>Completa los datos del producto.</p>
+              </div>
+              <button className="modal-close" type="button" aria-label="Cerrar" onClick={resetForm}>×</button>
             </div>
             <form className="product-form-body" onSubmit={handleSubmit}>
               <div className="mb-3">
@@ -301,10 +331,12 @@ function CrudProductos() {
                 </button>
               )}
             </form>
-          </div>
-        </section>
+          </section>
+        </div>
+      )}
 
-        <section className="col-12 col-lg-8" aria-labelledby="product-list-title">
+      <div className="row">
+        <section className="col-12" aria-labelledby="product-list-title">
           <div className="product-card product-list-card">
             <div className="product-card-heading product-list-heading">
               <div>
@@ -312,7 +344,7 @@ function CrudProductos() {
                 <p>Productos registrados en tu inventario.</p>
               </div>
               <span className="product-count">
-                {productos.length} {productos.length === 1 ? 'producto' : 'productos'}
+                {filteredProducts.length} {filteredProducts.length === 1 ? 'producto' : 'productos'}
               </span>
             </div>
             <div className="table-responsive">
@@ -322,8 +354,6 @@ function CrudProductos() {
                     <th scope="col">ID</th>
                     <th scope="col">Producto</th>
                     <th scope="col">Categoría</th>
-                    <th scope="col">Proveedor</th>
-                    <th scope="col">Descripción</th>
                     <th scope="col">Precio</th>
                     <th scope="col">Stock</th>
                     <th scope="col">Acciones</th>
@@ -332,34 +362,30 @@ function CrudProductos() {
                 <tbody>
                   {isLoading ? (
                     <tr>
-                      <td className="product-empty-state" colSpan="8">
+                      <td className="product-empty-state" colSpan="6">
                         Cargando productos…
                       </td>
                     </tr>
                   ) : errorMessage ? (
                     <tr>
-                      <td className="product-empty-state" colSpan="8">
+                      <td className="product-empty-state" colSpan="6">
                         No se pudo cargar la información.
                       </td>
                     </tr>
-                  ) : productos.length === 0 ? (
+                  ) : filteredProducts.length === 0 ? (
                     <tr>
-                      <td className="product-empty-state" colSpan="8">
-                        Aún no hay productos. Registra el primero usando el formulario.
+                      <td className="product-empty-state" colSpan="6">
+                        {search ? 'No hay productos que coincidan con la búsqueda.' : 'Aún no hay productos registrados.'}
                       </td>
                     </tr>
                   ) : (
-                    productos.map((producto) => (
+                    filteredProducts.map((producto) => (
                       <tr key={producto.id}>
-                        <td>{producto.id}</td>
+                        <td>{String(producto.id).padStart(3, '0')}</td>
                         <td className="product-name">{producto.nombre}</td>
                         <td>{producto.categoria?.nombre || '—'}</td>
-                        <td>{producto.proveedor?.razonSocial || '—'}</td>
-                        <td className="product-description" title={producto.descripcion || ''}>
-                          {producto.descripcion || '—'}
-                        </td>
                         <td>S/ {Number(producto.precio).toFixed(2)}</td>
-                        <td>{producto.stock}</td>
+                        <td>{producto.stock <= 5 ? <span className="stock-warning">{producto.stock}</span> : producto.stock}</td>
                         <td>
                           <div className="product-actions">
                             <button
