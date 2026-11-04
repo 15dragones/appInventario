@@ -68,3 +68,7 @@ Los endpoints de autenticación son `POST /api/auth/register`, `POST /api/auth/l
 Los endpoints de inventario son `GET/POST/PUT/DELETE /categorias`,
 `GET/POST/PUT/DELETE /proveedores`, `GET/POST/PUT/DELETE /productos`,
 `GET/POST/PUT/DELETE /usuarios`, `GET/POST /movimientos` y `GET /dashboard/resumen`.
+
+La sección de cuenta permite actualizar el perfil, consultar la información compartida del
+negocio y configurar preferencias de visualización y alertas. Los datos del negocio se guardan
+en MySQL; las preferencias se conservan en el navegador actual.

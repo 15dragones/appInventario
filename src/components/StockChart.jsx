@@ -4,7 +4,7 @@ function StockChart({ categories, colors }) {
   const totalStock = categories.reduce((total, category) => total + category.value, 0)
 
   return (
-    <div className="tw-px-4 tw-pb-4">
+    <div className="dashboard-chart-content tw-px-4 tw-pb-4">
       <div className="tw-relative tw-h-[190px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>

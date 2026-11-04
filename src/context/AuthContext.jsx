@@ -47,6 +47,12 @@ export function AuthProvider({ children }) {
     return data.user
   }, [])
 
+  const updateProfile = useCallback(async (profile) => {
+    const { data } = await api.patch('/api/auth/me', profile)
+    setUser(data.user)
+    return data.user
+  }, [])
+
   const signOut = useCallback(() => {
     localStorage.removeItem('accessToken')
     setUser(null)
@@ -56,8 +62,9 @@ export function AuthProvider({ children }) {
     user,
     isLoading,
     signIn,
+    updateProfile,
     signOut,
-  }), [user, isLoading, signIn, signOut])
+  }), [user, isLoading, signIn, updateProfile, signOut])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
